@@ -1,36 +1,26 @@
 import csv
 import glob
+import gzip
 from collections import defaultdict
 
-
-DATA_FILEPATH = 'sample_data/*.txt'
+DATA_FILEPATH = 'sample_data/*.txt.gz'
 TRANSCRIPT_ID_COL_IDX = 0
 TRANSCRIPT_ABUNDANCE_COL_IDX = 8
 
+overall_set_collection = defaultdict(list)
+sampled_transcripts_collection = defaultdict(dict)
+unique_sample_names = []
 
 def extract_sample_name(string):
     tokens = string.split('_')  # todo improve this
     return tokens[2] + '_' + tokens[3]
 
-
-overall_set_collection = defaultdict(list)
-sampled_transcripts_collection = defaultdict(dict)
-
-unique_sample_names = []
-
 for file_name in glob.glob(DATA_FILEPATH):
-    # if file_name.endswith('tar.gz'):
-    #     tar = tarfile.open(file_name)
-    #     tar.extractall()
-    #     tar.close()
-
+    print 'processing ' + file_name
     sample_name = extract_sample_name(file_name)
     unique_sample_names.append(sample_name)
 
-    print 'starting: ' + sample_name
-
-    # read and parse out transcript_ids and abundance values
-    with open(file_name) as in_file:
+    with gzip.open(file_name, 'rb') as in_file:
         reader = csv.reader(in_file, delimiter='\t')
         next(reader, None)  # skip  the header row
 
@@ -38,9 +28,6 @@ for file_name in glob.glob(DATA_FILEPATH):
             gene_id = line[TRANSCRIPT_ID_COL_IDX]
             abundance = line[TRANSCRIPT_ABUNDANCE_COL_IDX]
             sampled_transcripts_collection[gene_id][sample_name] = abundance
-
-print 'genes count: ', len(sampled_transcripts_collection)
-print 'sample_file count: ', len(unique_sample_names)
 
 with open('test.csv', 'wb') as outfile:
     field_names = ['transcript_id'] + sorted(unique_sample_names)
