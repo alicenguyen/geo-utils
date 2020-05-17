@@ -2,10 +2,8 @@ import csv
 import glob
 from collections import defaultdict
 
-import sys
-import tarfile
 
-DATA_FILEPATH = 'sample_data/*.csv'
+DATA_FILEPATH = 'sample_data/*.txt'
 TRANSCRIPT_ID_COL_IDX = 0
 TRANSCRIPT_ABUNDANCE_COL_IDX = 8
 
@@ -44,3 +42,13 @@ for file_name in glob.glob(DATA_FILEPATH):
 print 'genes count: ', len(sampled_transcripts_collection)
 print 'sample_file count: ', len(unique_sample_names)
 
+with open('test.csv', 'wb') as outfile:
+    field_names = ['transcript_id'] + sorted(unique_sample_names)
+    writer = csv.DictWriter(outfile, fieldnames=field_names)
+
+    writer.writeheader()
+    for transcript_id, t_dict in sorted(sampled_transcripts_collection.items()):
+        row_dict = {'transcript_id': transcript_id}
+        for sample_key in sorted(unique_sample_names):
+            row_dict[sample_key] = t_dict.get(sample_key, 0)
+        writer.writerow(row_dict)
